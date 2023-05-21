@@ -13,6 +13,20 @@ struct RT_parametros{
    gsl_matrix *cuerpos;      //lista de coordenadas de los centros de los átomos
 }
 
+//template para que el usuario modifique:
+struct RT_parametros RT_default_params = { 
+   .registrar_recorrido = false;
+   .max_rebotes = 1000;
+
+   .dims = 0;           //no modificar esto da error
+
+   .dir_inicial = NULL; //se elige una dirección aleatoria
+
+   .radio_cuerpo = 0;   //no modificar esto da error
+   .radio_estrella = 0; //no modificar esto da error
+   .cuerpos = NULL;     //no modificar esto da error
+}; 
+
 /* Resultados de la Simulación */
 struct RT_resultados{
    bool exito;            //true si el rayo salió de la estrella, false si no

@@ -1,3 +1,5 @@
+#include <stdbool.h>
+
 
 /* Parámetros de la Simulación */
 struct RT_parametros{
@@ -8,9 +10,9 @@ struct RT_parametros{
 
    gsl_vector_long_double *dir_inicial; //vector unitario, o nulo
 
-   double radio_cuerpo;      //radio de los átomos
-   double radio_estrella;    //radio de la estrella
    gsl_matrix *cuerpos;      //lista de coordenadas de los centros de los átomos
+   unsigned double radio_cuerpo;      //radio de los átomos
+   unsigned double radio_estrella;    //radio de la estrella
 }
 
 //template para que el usuario modifique:
@@ -29,10 +31,19 @@ struct RT_parametros RT_default_params = {
 
 /* Resultados de la Simulación */
 struct RT_resultados{
-   bool exito;            //true si el rayo salió de la estrella, false si no
+   bool exito;                          //true si el rayo salió de la estrella, false si no
 
-   unsigned int rebotes;  //cuantas veces rebotó
-   long double distancia; //distancia recorrida
+   unsigned int rebotes;                //cuantas veces rebotó
+   long double distancia;               //distancia recorrida
 
-   time_t t_elapsed;      //tiempo que tomó la simulación
+   gsl_matrix *recorrido;               //lista de puntos por donde pasó el rayo, o NULL
+   gsl_vector_long_double *dir_inicial; //dirección inicial simulada
+
+   time_t t_elapsed;                    //tiempo que tomó la simulación
 }
+
+
+/* Funciones de la Simulación */
+
+void RT_configurar(struct RT_parametros params); //configura la simulación
+struct RT_resultados RT_simular();               //corre la simulación y devuelve los resultados

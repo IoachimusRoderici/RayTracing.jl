@@ -6,7 +6,6 @@
 
 static bool hemosidoconfigurados = false;   //indica si la simulación está configurada
 static bool use_random_dir;                 //indica si hay que elegir una dirección aleatoria
-static bool vectores_alocados = false;      //indica si los vectores están alocados
 
 static bool registrar_recorrido;            //si es true guardamos una lista de los rebotes
 static char *recorrido_filename;            //string con el nombre de archivo
@@ -37,14 +36,18 @@ struct RT_resultados data;                  //info para delvolver al usuario
 
 /* Funciones de la Simulación */
 
-static void alocar_vectores ();             //aloca los vectores, con tamaño dims
+static void alocar_vectores (unsigned int d); //aloca los vectores, con tamaño d
+__attribute__((destructor))
+static void free_vectores ();                 //libera los vectores
 
-static void correr_simulacion ();           //corre la simulación y deja los resultados en data,
-                                            //excepto exito y dir_inicial.
+static void escribir_pos();                   //escribe la posición en recorrido
 
-static void primera_interseccion ();        //actualiza dist y centro_interseccion
-static void avanzar (double d);             //avanza una distancia d en la dirección actual
-static void rebotar (gsl_vector *centro);   //rebota contra un cuerpo con el centro dado
+static void correr_simulacion ();             //corre la simulación y deja los resultados en
+                                              //data, excepto exito y dir_inicial.
+
+static void primera_interseccion ();          //actualiza dist y centro_interseccion
+static void avanzar_dist ();                  //avanza una distancia dist en la dirección actual
+static void rebotar (gsl_vector *centro);     //rebota contra un cuerpo con el centro dado
 
 
 /* Código de la API */
@@ -64,20 +67,25 @@ void RT_configurar(struct RT_parametros params){
    }
    
    //si hace falta alocamos los vectores
-   if (!vectores_alocados || params.dims != dims){
-      alocar_vectores();
+   if (!hemosidoconfigurados || params.dims != dims){
+      alocar_vectores(params.dims);
    }
    
    //desempacamos los datos
-   max_rebotes = params.max_rebotes;
    registrar_recorrido = params.registrar_recorrido;
+   recorrido_filename = params.recorrido_filename;
+   
+   max_rebotes = params.max_rebotes;
    dims = params.dims;
+   
+   centros = params.centros;
    radio_cuerpo = params.radio_cuerpo;
    radio_estrella = params.radio_estrella;
-   centros = params.centros;
-   
+      
    use_random_dir = params.dir_inicial == NULL;
-   data.dir_inicial = params.dir_inicial;
+   if (!use_random_dir){
+      gsl_vector_memcpy(data.dir_inicial, params.dir_inicial);
+   }
       
    //listo
    hemosidoconfiguraos = true;
@@ -91,16 +99,35 @@ struct RT_resultados RT_simular(){
       exit(1);
    }
    
-   //abrimos el archivo para el recorrido
-   if (registrar_recorrido){
-      recorrido = fopen(filename, "w");
-   }
-   
    //seteamos la dirección inicial
    if (use_random_dir){
       gsl_ran_dir_nd(generador, dims, data.dir_inicial->data); //falta hacer el generador
    }
    gsl_vector_memcpy(dir, data.dir_inicial);
+   
+   //seteamos la posición inicial
+   gsl_vector_set_zero(pos);
+   
+   //ponemos en cero las métricas
+   rebotes = 0;
+   distancia_rec = 0;
+   
+   //abrimos el archivo para el recorrido
+   if (registrar_recorrido){
+      recorrido = fopen(recorrido_filename, "w");
+   }
+   
+   //corremos la simulación
+   correr_simulacion();
+   
+   //cerramos el archivo del el recorrido
+   if (registrar_recorrido){
+      fclose(recorrido);
+   }
+   
+   //y finalmente reportamos los resultados
+   data.exito = rebotes < max_rebotes;
+   return data;   
 }
 
 

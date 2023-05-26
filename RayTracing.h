@@ -52,7 +52,7 @@ struct RT_resultados{
 /* Funciones de la API */
 
 void RT_configurar(struct RT_parametros params); //configura la simulación
-struct RT_resultados RT_simular(char* filename); //corre la simulación y devuelve los resultados.
+struct RT_resultados RT_simular();               //corre la simulación y devuelve los resultados.
                                                  //guarda el recorrido en filename si corresponde
 
 

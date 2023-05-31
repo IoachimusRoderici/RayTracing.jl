@@ -1,4 +1,6 @@
 #include "RayTacing.h"
+#include "MyGSLRandom.h"
+#include "MyTime.h"
 #include <tgmath.h>
 #include <stdio.h>
 
@@ -55,7 +57,7 @@ static void rebotar_centro_intersec ();       //rebota contra el cuerpo de centr
 
 /* Código de la API */
 
-void RT_configurar(struct RT_parametros params){
+void RT_configurar (struct RT_parametros params){
    //vemos que los parámetros estén completos
    if (params.dims == 0 || params.centros == NULL || \
        params.radio_estrella == 0 || params.radio_cuerpo==0){
@@ -96,7 +98,7 @@ void RT_configurar(struct RT_parametros params){
    hemosidoconfiguraos = true;
 }
 
-struct RT_resultados RT_simular(){
+struct RT_resultados RT_simular (){
    
    //vemos que la cosa esté configurada
    if (!hemosidoconfigurados){
@@ -106,7 +108,7 @@ struct RT_resultados RT_simular(){
    
    //seteamos la dirección inicial
    if (use_random_dir){
-      gsl_ran_dir_nd(generador, dims, data.dir_inicial->data); //falta hacer el generador
+      random_dir(data.dir_inicial);
    }
    gsl_vector_memcpy(dir, data.dir_inicial);
    
@@ -123,7 +125,12 @@ struct RT_resultados RT_simular(){
    }
    
    //corremos la simulación
+   iniciar_el_reloj();
+
    correr_simulacion();
+
+   t_elapsed = leer_time_t();
+
    
    //cerramos el archivo del el recorrido
    if (registrar_recorrido){
@@ -150,7 +157,8 @@ static void alocar_vectores (unsigned int d){
    //luego los alocamos
    pos = gsl_vector_alloc(d);
    dir = gsl_vector_alloc(d);
-   ector_aux = gsl_vector_alloc(d);
+   vector_aux = gsl_vector_alloc(d);
+   data.dir_inicial = gsl_vector_alloc(d);
 }
 
 __attribute__((destructor))
@@ -163,6 +171,7 @@ static void free_vectores (){
    gsl_vector_free(pos);
    gsl_vector_free(dir);
    gsl_vector_free(vector_aux);
+   gsl_vector_free(data.dir_inicial);
 }
 
 static void escribir_pos (){
@@ -181,8 +190,6 @@ static void correr_simulacion (){
       Es una extracción de RT_simular.
    */
    
-   t_elapsed = time();     //falta hacer la cosa del tiempo
-   
    primera_interseccion();
    
    while (dist < INFINITY && rebotes < max_rebotes){
@@ -195,52 +202,50 @@ static void correr_simulacion (){
    if (rebotes < max_rebotes){
       ir_al_borde();
    }
-   
-   t_elapsed = time() - t_elapsed;
 }
 
 static void primera_interseccion (){
-   /* Busca la primera intersección y deja la distancia a la intersección en dist,
+   /* Busca la primera intersección. Deja la distancia a la intersección en dist,
       y el centro del cuerpo correspondiente en centro_intersec.
       Si no hay intersección, deja INFINITY en dest, y centro_intersec está indefinido.
       
-      Acá aux_vector es el vector que va de pos a un centro (centros[i] - pos).
+      Acá aux_vector es el vector que va de pos a centro_intersec (centros[i] - pos).
    */
    
    size_t i_intersec;
-   double auxdotdir, posdotdir, nabla;
+   double auxdotdir, posdotdir;
+   long double nabla;
    
    dist = INFINITY; //si no hay intersección queda así
    
-   //esto ahorra cuentas para calcular aux_vector·dir
-   posdotdir = gsl_blas_ddot(pos, dir); //revisar si se escribe así
+   posdotdir = gsl_blas_ddot(pos, dir); //esto ahorra cuentas para calcular aux_vector·dir
    
    for(int i = centros->size; i>=0; i--){
-      centro_intersec = gsl_matrix_row(centros, i); //chequear si se escribe así
+      centro_intersec = gsl_matrix_row(centros, i);
       
       auxdotdir = gsl_blas_ddot(&centro_intersec->vector, dir) - posdotdir;
       
       if (auxdotdir > 0  &&  auxdotdir < dist){ //si está adelante y más cerca que dist
       
-         //calculamos centro-pos y nabla
+         //calculamos centro - pos y nabla
          gsl_vector_memcpy(aux_vector, &centro_intersec->vector);
-         gsl_vector_sub(aux_vector, pos); //chequear si se escribe así
+         gsl_vector_sub(aux_vector, pos);
          
          nabla = auxdotdir*auxdotdir - gsl_blas_ddot(aux_vector, aux_vector) + radio_cuerpo2;
          
          if (nabla>0){ //si hay intersección, es la nueva más cercana
-            dist = x;
+            dist = auxdotdir;
             i_intersec = i;
          }
       }
    }
    
    if (dist != INFINITY){
-      centro_intersec = gsl_matrix_row(centros, i_intersec); //chequear si se escribe así
+      centro_intersec = gsl_matrix_row(centros, i_intersec);
       
       //calculamos bien la distancia
       gsl_vector_memcpy(aux_vector, &centro_intersec->vector);
-      gsl_vector_sub(aux_vector, pos); //chequear si se escribe así
+      gsl_vector_sub(aux_vector, pos);
       
       nabla = dist*dist - gsl_blas_ddot(aux_vector, aux_vector) + radio_cuerpo2;
       dist -= sqrt(nabla);
@@ -251,7 +256,7 @@ static void avanzar_dist (){
    /* Avanza una distancia dist en la dirección actual */
    
    distancia_rec += dist;
-   gsl_blas_axpy(dist, dir, pos); //revisar si se escribe así   
+   gsl_blas_daxpy(dist, dir, pos);  
 }
 
 static void rebotar_centro_intersec (){
@@ -264,17 +269,15 @@ static void rebotar_centro_intersec (){
    
    //calculamos la normal
    gsl_vector_memcpy(aux_vector, pos);
-   gsl_vector_sub(aux_vector, centro_intersec); //chequear si se escribe así
+   gsl_vector_sub(aux_vector, centro_intersec);
    gsl_vector_scale(aux_vector, radio_cuerpo_inv);
    
-   //calculamos el factor de escala
-   double escala = -2 * gsl_blas_ddot(dir, aux_vector);
-   
    //cambiamos la dirección
-   gsl_blas_axpy(escala, aux_vector, dir); //ver si esta es la función correcta
+   double escala = -2 * gsl_blas_ddot(dir, aux_vector);
+   gsl_blas_daxpy(escala, aux_vector, dir);
    
    //nos aseguramos que quede unitaria la dirección
-   gsl_vector_scale(dir, 1/gsl_vector_norm2(dir)); //ver si son las funciones correctas
+   gsl_vector_scale(dir, 1/gsl_blas_dnrm2(dir));
    
    //contamos los rebotes
    rebotes++;
@@ -282,8 +285,5 @@ static void rebotar_centro_intersec (){
       escribir_pos();
    }
 }
-
-
-
 
 

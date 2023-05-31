@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <time.h>
 
 #define HAVE_INLINE
 #include <gsl/gsl_vector.h>

@@ -1,7 +1,0 @@
-all: compile run
-
-compile:
-	gcc main.c RayTracing.c ../C/GSL/MyGSLRandom.c ../C/MyLib/MyTime.c -lgsl -Wall
-
-run:
-	./a.out

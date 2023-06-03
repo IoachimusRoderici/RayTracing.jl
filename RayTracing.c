@@ -1,4 +1,5 @@
-#include "RayTacing.h"
+#include "RayTracing.h"
+#include <gsl/gsl_blas.h>
 #include "../C/GSL/MyGSLRandom.h"
 #include "../C/MyLib/MyTime.h"
 #include <tgmath.h>
@@ -11,21 +12,21 @@ static bool use_random_dir;                 //indica si hay que elegir una direc
 static bool registrar_recorrido;            //si es true guardamos una lista de los rebotes
 
 static char *recorrido_filename;            //string con el nombre de archivo
-static FILE *reccorrido;                    //archivo donde escribimos el recorrido
+static FILE *recorrido;                     //archivo donde escribimos el recorrido
 
 static unsigned int max_rebotes;            //abortar la simulación en este número de rebotes
 
 static unsigned int dims;                   //número de dimensiones
 static gsl_matrix *centros;                 //lista de coordenadas de los centros de los átomos
 
-static unsigned double radio_estrella;      //radio de la estrella
-static unsigned double radio_cuerpo;        //radio de los átomos
-static unsigned double radio_cuerpo2;       //radio_cuerpo al cuadrado
+static double radio_estrella;               //radio de la estrella
+static double radio_cuerpo;                 //radio de los átomos
+static double radio_cuerpo2;                //radio_cuerpo al cuadrado
 
 static gsl_vector *pos;                     //posición actual del rayo
 static gsl_vector *dir;                     //dirección actual del rayo (vector unitario)
 
-static unsigned double dist;                //distancia hasta la primera intersección
+static double dist;                         //distancia hasta la primera intersección
 static gsl_vector_view centro_intersec;     //centro del cuerpo con el que interseca
 static gsl_vector *aux_vector;              //vector auxiliar para algunas funciones
 
@@ -88,7 +89,7 @@ void RT_configurar (struct RT_parametros params){
    }
       
    //listo
-   hemosidoconfiguraos = true;
+   hemosidoconfigurados = true;
 }
 
 struct RT_resultados RT_simular (){
@@ -149,7 +150,7 @@ static void alocar_vectores (unsigned int d){
    //luego los alocamos
    pos = gsl_vector_alloc(d);
    dir = gsl_vector_alloc(d);
-   vector_aux = gsl_vector_alloc(d);
+   aux_vector = gsl_vector_alloc(d);
    data.dir_inicial = gsl_vector_alloc(d);
 }
 
@@ -162,7 +163,7 @@ static void free_vectores (){
    
    gsl_vector_free(pos);
    gsl_vector_free(dir);
-   gsl_vector_free(vector_aux);
+   gsl_vector_free(aux_vector);
    gsl_vector_free(data.dir_inicial);
 }
 
@@ -223,12 +224,13 @@ static void buscar_primera_interseccion (){
       al rayo, y en ese caso (nabla>0) actualizamos dist.
    */
    
-   pos_dot_dir = gsl_blas_ddot(pos, dir); //esto ahorra cuentas para calcular aux_vector·dir
+   gsl_blas_ddot(pos, dir, &pos_dot_dir); //esto ahorra cuentas para calcular aux_vector·dir
    
-   for(int i = centros->size; i>=0; i--){
+   for(int i = centros->size1; i>=0; i--){
       centro_intersec = gsl_matrix_row(centros, i);
       
-      aux_dot_dir = gsl_blas_ddot(&centro_intersec->vector, dir) - pos_dot_dir;
+      gsl_blas_ddot(&centro_intersec->vector, dir, &aux_dot_dir);
+      aux_dot_dir -= pos_dot_dir;
       
       if (aux_dot_dir > 0  &&  aux_dot_dir < dist){ //si está adelante y más cerca que dist
       
@@ -236,7 +238,8 @@ static void buscar_primera_interseccion (){
          gsl_vector_memcpy(aux_vector, &centro_intersec->vector);
          gsl_vector_sub(aux_vector, pos);
          
-         nabla = aux_dot_dir*aux_dot_dir - gsl_blas_ddot(aux_vector, aux_vector) + radio_cuerpo2;
+         gsl_blas_ddot(aux_vector, aux_vector, &nabla);
+         nabla = aux_dot_dir*aux_dot_dir - nabla + radio_cuerpo2;
          
          if (nabla>0){ //si hay intersección, es la nueva más cercana
             dist = aux_dot_dir;
@@ -257,7 +260,8 @@ static void buscar_primera_interseccion (){
       gsl_vector_memcpy(aux_vector, &centro_intersec->vector);
       gsl_vector_sub(aux_vector, pos);
       
-      nabla = dist*dist - gsl_blas_ddot(aux_vector, aux_vector) + radio_cuerpo2;
+      gsl_blas_ddot(aux_vector, aux_vector, &nabla);
+      nabla = dist*dist - nabla + radio_cuerpo2;
       dist -= sqrt(nabla);
    }
 }
@@ -282,7 +286,9 @@ static void rebotar_centro_intersec (){
    gsl_vector_sub(aux_vector, centro_intersec);
    
    //cambiamos la dirección
-   double escala = -2 * gsl_blas_ddot(dir, aux_vector) / radio_cuerpo;
+   double escala;
+   gsl_blas_ddot(dir, aux_vector, &escala);
+   escala *= -2 / radio_cuerpo;
    gsl_blas_daxpy(escala, aux_vector, dir);
    
    //nos aseguramos que quede unitaria la dirección
@@ -301,8 +307,12 @@ static void avanzar_hasta_el_borde(){
    */
 
    //calculamos la intersección
-   double pos_dot_dir = gsl_blas_ddot(pos, dir);
-   double nabla = pos_dot_dir*pos_dot_dir - gsl_blas_ddot(pos, pos) + radio_estrella*radio_estrella;
+   double pos_dot_dir, nabla;
+
+   gsl_blas_ddot(pos, dir, &pos_dot_dir);
+   gsl_blas_ddot(pos, pos, &nabla);
+   
+   nabla = pos_dot_dir*pos_dot_dir - nabla + radio_estrella*radio_estrella;
    dist = -pos_dot_dir + sqrt(nabla);
 
    //avanzamos

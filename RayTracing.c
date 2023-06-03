@@ -46,6 +46,7 @@ static void correr_simulacion ();             //corre la simulación y deja los 
 static void buscar_primera_interseccion ();   //actualiza dist y centro_interseccion
 static void avanzar_dist ();                  //avanza una distancia dist en la dirección actual
 static void rebotar_centro_intersec ();       //rebota contra el cuerpo de centro_intersec
+static void avanzar_hasta_el_borde();         //avanza hasta el borde de la estrella
 
 
 /* Código de la API */
@@ -102,7 +103,7 @@ struct RT_resultados RT_simular (){
 
    //seteamos la dirección inicial
    if (use_random_dir){
-      random_dir(data.dir_inicial);
+      random_direction(data.dir_inicial);
    }
    gsl_vector_memcpy(dir, data.dir_inicial);
    
@@ -185,13 +186,13 @@ static void correr_simulacion (){
    
    while (dist != INFINITY && data.rebotes < max_rebotes){
       avanzar_dist();
-      rebotar();
+      rebotar_centro_intersec();
       
       buscar_primera_interseccion();
    }
    
    if (data.rebotes < max_rebotes){
-      ir_al_borde();
+      avanzar_hasta_el_borde();
    }
 }
 
@@ -202,7 +203,7 @@ static void buscar_primera_interseccion (){
    */
    
    size_t i_intersec;
-   double auxdotdir, posdotdir;
+   double aux_dot_dir, pos_dot_dir;
    double nabla;
    
    dist = INFINITY; //si no hay intersección queda así
@@ -212,33 +213,33 @@ static void buscar_primera_interseccion (){
       Acá aux_vector es el vector que va de pos a centro_intersec (centros[i] - pos).
 
       Primero calculamos aux_vector·dir, que es la distancia a lo largo del rayo hasta
-      el centro del cuerpo. En dist ponemos el valor de auxdotdir de la intersección
+      el centro del cuerpo. En dist ponemos el valor de aux_dot_dir de la intersección
       más cercana.
       
-      Descartamos los cuerpos que están en el hemisferio de atrás (auxdotdir<0), y los
-      que están más lejos que dist (auxdotdir>dist).
+      Descartamos los cuerpos que están en el hemisferio de atrás (aux_dot_dir<0), y
+      los que están más lejos que dist (aux_dot_dir>dist).
 
       A los cuerpos que pasan este filtro les calculamos nabla para ver si intersecan
       al rayo, y en ese caso (nabla>0) actualizamos dist.
    */
    
-   posdotdir = gsl_blas_ddot(pos, dir); //esto ahorra cuentas para calcular aux_vector·dir
+   pos_dot_dir = gsl_blas_ddot(pos, dir); //esto ahorra cuentas para calcular aux_vector·dir
    
    for(int i = centros->size; i>=0; i--){
       centro_intersec = gsl_matrix_row(centros, i);
       
-      auxdotdir = gsl_blas_ddot(&centro_intersec->vector, dir) - posdotdir;
+      aux_dot_dir = gsl_blas_ddot(&centro_intersec->vector, dir) - pos_dot_dir;
       
-      if (auxdotdir > 0  &&  auxdotdir < dist){ //si está adelante y más cerca que dist
+      if (aux_dot_dir > 0  &&  aux_dot_dir < dist){ //si está adelante y más cerca que dist
       
          //calculamos centro_intersec - pos y nabla
          gsl_vector_memcpy(aux_vector, &centro_intersec->vector);
          gsl_vector_sub(aux_vector, pos);
          
-         nabla = auxdotdir*auxdotdir - gsl_blas_ddot(aux_vector, aux_vector) + radio_cuerpo2;
+         nabla = aux_dot_dir*aux_dot_dir - gsl_blas_ddot(aux_vector, aux_vector) + radio_cuerpo2;
          
          if (nabla>0){ //si hay intersección, es la nueva más cercana
-            dist = auxdotdir;
+            dist = aux_dot_dir;
             i_intersec = i;
          }
       }
@@ -294,4 +295,19 @@ static void rebotar_centro_intersec (){
    }
 }
 
+static void avanzar_hasta_el_borde(){
+   /* Avanza en la dirección actual hasta llegar al borde.
+      Se asume que el rayo está adentro de la estrella.
+   */
 
+   //calculamos la intersección
+   double pos_dot_dir = gsl_blas_ddot(pos, dir);
+   double nabla = pos_dot_dir*pos_dot_dir - gsl_blas_ddot(pos, pos) + radio_estrella*radio_estrella;
+   dist = -pos_dot_dir + sqrt(nabla);
+
+   //avanzamos
+   avanzar_dist();
+   if (registrar_recorrido){
+      escribir_pos();
+   }
+}

@@ -30,11 +30,6 @@ static gsl_vector_view centro_intersec;     //centro del cuerpo con el que inter
 static gsl_vector *aux_vector;              //vector auxiliar para algunas funciones
 
 struct RT_resultados data;                  //info para delvolver al usuario
-//estas definiciones son para no ensuciar
-//el código pero usar la misma estructura
-//como variables internas.
-#define rebotes       data.rebotes          //cuantas veces rebotamos hasta ahora       
-#define distancia_rec data.distancia        //distancia recorrida hasta ahora
 
 
 /* Funciones de la Simulación */
@@ -84,7 +79,6 @@ void RT_configurar (struct RT_parametros params){
    centros = params.centros;
    radio_cuerpo = params.radio_cuerpo;
    radio_cuerpo2 = radio_cuerpo*radio_cuerpo;
-   radio_cuerpo_inv = 1.0/radio_cuerpo;
    radio_estrella = params.radio_estrella;
       
    use_random_dir = params.dir_inicial == NULL;
@@ -116,8 +110,8 @@ struct RT_resultados RT_simular (){
    gsl_vector_set_zero(pos);
    
    //ponemos en cero las métricas
-   rebotes = 0;
-   distancia_rec = 0;
+   data.rebotes = 0;
+   data.distancia = 0;
    
    //abrimos el archivo para el recorrido
    if (registrar_recorrido){
@@ -129,7 +123,7 @@ struct RT_resultados RT_simular (){
 
    //populamos data
    data.t_elapsed = leer_time_t();
-   data.exito = rebotes < max_rebotes;
+   data.exito = data.rebotes < max_rebotes;
    
    //cerramos el archivo del recorrido
    if (registrar_recorrido){
@@ -189,14 +183,14 @@ static void correr_simulacion (){
    
    buscar_primera_interseccion();
    
-   while (dist != INFINITY && rebotes < max_rebotes){
+   while (dist != INFINITY && data.rebotes < max_rebotes){
       avanzar_dist();
       rebotar();
       
       buscar_primera_interseccion();
    }
    
-   if (rebotes < max_rebotes){
+   if (data.rebotes < max_rebotes){
       ir_al_borde();
    }
 }
@@ -270,7 +264,7 @@ static void buscar_primera_interseccion (){
 static void avanzar_dist (){
    /* Avanza una distancia dist en la dirección actual */
    
-   distancia_rec += dist;
+   data.distancia += dist;
    gsl_blas_daxpy(dist, dir, pos);  
 }
 
@@ -294,7 +288,7 @@ static void rebotar_centro_intersec (){
    gsl_vector_scale(dir, 1/gsl_blas_dnrm2(dir));
    
    //registramos el rebote
-   rebotes++;
+   data.rebotes++;
    if (registrar_recorrido){
       escribir_pos();
    }

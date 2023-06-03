@@ -1,6 +1,6 @@
 #include "RayTacing.h"
-#include "MyGSLRandom.h"
-#include "MyTime.h"
+#include "../C/GSL/MyGSLRandom.h"
+#include "../C/MyLib/MyTime.h"
 #include <tgmath.h>
 #include <stdio.h>
 
@@ -8,8 +8,8 @@
 
 static bool hemosidoconfigurados = false;   //indica si la simulación está configurada
 static bool use_random_dir;                 //indica si hay que elegir una dirección aleatoria
-
 static bool registrar_recorrido;            //si es true guardamos una lista de los rebotes
+
 static char *recorrido_filename;            //string con el nombre de archivo
 static FILE *reccorrido;                    //archivo donde escribimos el recorrido
 
@@ -18,16 +18,15 @@ static unsigned int max_rebotes;            //abortar la simulación en este nú
 static unsigned int dims;                   //número de dimensiones
 static gsl_matrix *centros;                 //lista de coordenadas de los centros de los átomos
 
+static unsigned double radio_estrella;      //radio de la estrella
 static unsigned double radio_cuerpo;        //radio de los átomos
 static unsigned double radio_cuerpo2;       //radio_cuerpo al cuadrado
-static unsigned double radio_cuerpo_inv;    // = 1/radio_cuerpo
-static unsigned double radio_estrella;      //radio de la estrella
 
 static gsl_vector *pos;                     //posición actual del rayo
 static gsl_vector *dir;                     //dirección actual del rayo (vector unitario)
 
-static unsigned long double dist;           //distancia hasta la primera intersección
-static gsl_vector_view *centro_intersec;    //centro del cuerpo con el que interseca
+static unsigned double dist;                //distancia hasta la primera intersección
+static gsl_vector_view centro_intersec;     //centro del cuerpo con el que interseca
 static gsl_vector *aux_vector;              //vector auxiliar para algunas funciones
 
 struct RT_resultados data;                  //info para delvolver al usuario
@@ -36,7 +35,6 @@ struct RT_resultados data;                  //info para delvolver al usuario
 //como variables internas.
 #define rebotes       data.rebotes          //cuantas veces rebotamos hasta ahora       
 #define distancia_rec data.distancia        //distancia recorrida hasta ahora
-#define t_elapsed     data.t_elapsed        //tiempo que tomó la simulación
 
 
 /* Funciones de la Simulación */
@@ -48,9 +46,9 @@ static void free_vectores ();                 //libera los vectores
 static void escribir_pos();                   //escribe la posición en recorrido
 
 static void correr_simulacion ();             //corre la simulación y deja los resultados en
-                                              //data, excepto exito y dir_inicial.
+                                              //data, excepto exito, dir_inicial, y t_elapsed.
 
-static void primera_interseccion ();          //actualiza dist y centro_interseccion
+static void buscar_primera_interseccion ();   //actualiza dist y centro_interseccion
 static void avanzar_dist ();                  //avanza una distancia dist en la dirección actual
 static void rebotar_centro_intersec ();       //rebota contra el cuerpo de centro_intersec
 
@@ -106,6 +104,8 @@ struct RT_resultados RT_simular (){
       exit(1);
    }
    
+   iniciar_el_reloj();
+
    //seteamos la dirección inicial
    if (use_random_dir){
       random_dir(data.dir_inicial);
@@ -125,20 +125,17 @@ struct RT_resultados RT_simular (){
    }
    
    //corremos la simulación
-   iniciar_el_reloj();
-
    correr_simulacion();
 
-   t_elapsed = leer_time_t();
-
+   //populamos data
+   data.t_elapsed = leer_time_t();
+   data.exito = rebotes < max_rebotes;
    
-   //cerramos el archivo del el recorrido
+   //cerramos el archivo del recorrido
    if (registrar_recorrido){
       fclose(recorrido);
    }
    
-   //y finalmente reportamos los resultados
-   data.exito = rebotes < max_rebotes;
    return data;   
 }
 
@@ -190,13 +187,13 @@ static void correr_simulacion (){
       Es una extracción de RT_simular.
    */
    
-   primera_interseccion();
+   buscar_primera_interseccion();
    
-   while (dist < INFINITY && rebotes < max_rebotes){
+   while (dist != INFINITY && rebotes < max_rebotes){
       avanzar_dist();
       rebotar();
       
-      primera_interseccion();
+      buscar_primera_interseccion();
    }
    
    if (rebotes < max_rebotes){
@@ -204,19 +201,32 @@ static void correr_simulacion (){
    }
 }
 
-static void primera_interseccion (){
+static void buscar_primera_interseccion (){
    /* Busca la primera intersección. Deja la distancia a la intersección en dist,
       y el centro del cuerpo correspondiente en centro_intersec.
       Si no hay intersección, deja INFINITY en dest, y centro_intersec está indefinido.
-      
-      Acá aux_vector es el vector que va de pos a centro_intersec (centros[i] - pos).
    */
    
    size_t i_intersec;
    double auxdotdir, posdotdir;
-   long double nabla;
+   double nabla;
    
    dist = INFINITY; //si no hay intersección queda así
+
+   /* Iteramos por todos los cuerpos filtrando los que intersecan con el rayo.
+
+      Acá aux_vector es el vector que va de pos a centro_intersec (centros[i] - pos).
+
+      Primero calculamos aux_vector·dir, que es la distancia a lo largo del rayo hasta
+      el centro del cuerpo. En dist ponemos el valor de auxdotdir de la intersección
+      más cercana.
+      
+      Descartamos los cuerpos que están en el hemisferio de atrás (auxdotdir<0), y los
+      que están más lejos que dist (auxdotdir>dist).
+
+      A los cuerpos que pasan este filtro les calculamos nabla para ver si intersecan
+      al rayo, y en ese caso (nabla>0) actualizamos dist.
+   */
    
    posdotdir = gsl_blas_ddot(pos, dir); //esto ahorra cuentas para calcular aux_vector·dir
    
@@ -227,7 +237,7 @@ static void primera_interseccion (){
       
       if (auxdotdir > 0  &&  auxdotdir < dist){ //si está adelante y más cerca que dist
       
-         //calculamos centro - pos y nabla
+         //calculamos centro_intersec - pos y nabla
          gsl_vector_memcpy(aux_vector, &centro_intersec->vector);
          gsl_vector_sub(aux_vector, pos);
          
@@ -239,8 +249,13 @@ static void primera_interseccion (){
          }
       }
    }
-   
+
+   /* Ahora que sabemos cual es el cuerpo, calculamos bien la intersección.
+      Excepto que no haya intersección, en cuyo caso no hay que hacer nada más.
+   */   
+
    if (dist != INFINITY){
+      //ponemos el valor correcto en centro_intersec
       centro_intersec = gsl_matrix_row(centros, i_intersec);
       
       //calculamos bien la distancia
@@ -270,16 +285,15 @@ static void rebotar_centro_intersec (){
    //calculamos la normal
    gsl_vector_memcpy(aux_vector, pos);
    gsl_vector_sub(aux_vector, centro_intersec);
-   gsl_vector_scale(aux_vector, radio_cuerpo_inv);
    
    //cambiamos la dirección
-   double escala = -2 * gsl_blas_ddot(dir, aux_vector);
+   double escala = -2 * gsl_blas_ddot(dir, aux_vector) / radio_cuerpo;
    gsl_blas_daxpy(escala, aux_vector, dir);
    
    //nos aseguramos que quede unitaria la dirección
    gsl_vector_scale(dir, 1/gsl_blas_dnrm2(dir));
    
-   //contamos los rebotes
+   //registramos el rebote
    rebotes++;
    if (registrar_recorrido){
       escribir_pos();

@@ -31,12 +31,25 @@ static gsl_vector_view centro_intersec;     //centro del cuerpo con el que inter
 static gsl_vector *aux_vector;              //vector auxiliar para algunas funciones
 
 struct RT_resultados data;                  //info para delvolver al usuario
+struct RT_parametros RT_default_params = {  //template para que el usuario modifique
+   .registrar_recorrido = false,
+   .recorrido_filename = NULL,
+
+   .max_rebotes = 1000,
+
+   .dims = 0,                               //no modificar esto da error
+
+   .dir_inicial = NULL,                     //se elige una dirección aleatoria
+
+   .radio_cuerpo = 0,                       //no modificar esto da error
+   .radio_estrella = 0,                     //no modificar esto da error
+   .centros = NULL                          //no modificar esto da error
+}; 
 
 
 /* Funciones de la Simulación */
 
 static void alocar_vectores (unsigned int d); //aloca los vectores, con tamaño d
-__attribute__((destructor))
 static void free_vectores ();                 //libera los vectores
 
 static void escribir_pos();                   //escribe la posición en recorrido
@@ -158,9 +171,6 @@ __attribute__((destructor))
 static void free_vectores (){
    /* libera todos los vectores que usa la simulación */
    
-   //esto es para ver que ande
-   puts("Liberando los vectores...");
-   
    gsl_vector_free(pos);
    gsl_vector_free(dir);
    gsl_vector_free(aux_vector);
@@ -229,13 +239,13 @@ static void buscar_primera_interseccion (){
    for(int i = centros->size1; i>=0; i--){
       centro_intersec = gsl_matrix_row(centros, i);
       
-      gsl_blas_ddot(&centro_intersec->vector, dir, &aux_dot_dir);
+      gsl_blas_ddot(&centro_intersec.vector, dir, &aux_dot_dir);
       aux_dot_dir -= pos_dot_dir;
       
       if (aux_dot_dir > 0  &&  aux_dot_dir < dist){ //si está adelante y más cerca que dist
       
          //calculamos centro_intersec - pos y nabla
-         gsl_vector_memcpy(aux_vector, &centro_intersec->vector);
+         gsl_vector_memcpy(aux_vector, &centro_intersec.vector);
          gsl_vector_sub(aux_vector, pos);
          
          gsl_blas_ddot(aux_vector, aux_vector, &nabla);
@@ -257,7 +267,7 @@ static void buscar_primera_interseccion (){
       centro_intersec = gsl_matrix_row(centros, i_intersec);
       
       //calculamos bien la distancia
-      gsl_vector_memcpy(aux_vector, &centro_intersec->vector);
+      gsl_vector_memcpy(aux_vector, &centro_intersec.vector);
       gsl_vector_sub(aux_vector, pos);
       
       gsl_blas_ddot(aux_vector, aux_vector, &nabla);
@@ -283,7 +293,7 @@ static void rebotar_centro_intersec (){
    
    //calculamos la normal
    gsl_vector_memcpy(aux_vector, pos);
-   gsl_vector_sub(aux_vector, centro_intersec);
+   gsl_vector_sub(aux_vector, &centro_intersec.vector);
    
    //cambiamos la dirección
    double escala;

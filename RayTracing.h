@@ -24,7 +24,9 @@ struct RT_parametros{
 };
 
 //template para que el usuario modifique:
-struct RT_parametros RT_default_params = { 
+extern struct RT_parametros RT_default_params;
+/*
+= { 
    .registrar_recorrido = false,
    .recorrido_filename = NULL,
 
@@ -37,7 +39,7 @@ struct RT_parametros RT_default_params = {
    .radio_cuerpo = 0,                   //no modificar esto da error
    .radio_estrella = 0,                 //no modificar esto da error
    .centros = NULL                      //no modificar esto da error
-}; 
+};*/
 
 /* Resultados de la Simulación */
 

@@ -6,7 +6,7 @@
 #include <gsl/gsl_matrix.h>
 
 
-/* Parámetros de la Simulación */
+/* Un par de estructuras para que sea más facil intercambiar datos */
 
 struct RT_parametros{
    bool registrar_recorrido;            //indica si hay que guardar el recorrido
@@ -22,26 +22,6 @@ struct RT_parametros{
    double radio_cuerpo;                 //radio de los átomos
    double radio_estrella;               //radio de la estrella
 };
-
-//template para que el usuario modifique:
-extern struct RT_parametros RT_default_params;
-/*
-= { 
-   .registrar_recorrido = false,
-   .recorrido_filename = NULL,
-
-   .max_rebotes = 1000,
-
-   .dims = 0,                           //no modificar esto da error
-
-   .dir_inicial = NULL,                 //se elige una dirección aleatoria
-
-   .radio_cuerpo = 0,                   //no modificar esto da error
-   .radio_estrella = 0,                 //no modificar esto da error
-   .centros = NULL                      //no modificar esto da error
-};*/
-
-/* Resultados de la Simulación */
 
 struct RT_resultados{
    bool exito;                          //true si el rayo salió de la estrella, false si no

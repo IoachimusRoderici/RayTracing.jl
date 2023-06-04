@@ -7,45 +7,30 @@
 
 /* Variables de la Simulación */
 
-static bool hemosidoconfigurados = false;   //indica si la simulación está configurada
-static bool use_random_dir;                 //indica si hay que elegir una dirección aleatoria
-static bool registrar_recorrido;            //si es true guardamos una lista de los rebotes
+static bool hemosidoconfigurados = false;     //indica si la simulación está configurada
+static bool use_random_dir;                   //indica si hay que elegir una dirección aleatoria
+static bool registrar_recorrido;              //si es true guardamos una lista de los rebotes
 
-static char *recorrido_filename;            //string con el nombre de archivo
-static FILE *recorrido;                     //archivo donde escribimos el recorrido
+static char *recorrido_filename;              //string con el nombre de archivo
+static FILE *recorrido;                       //archivo donde escribimos el recorrido
 
-static unsigned int max_rebotes;            //abortar la simulación en este número de rebotes
+static unsigned int max_rebotes;              //abortar la simulación en este número de rebotes
 
-static unsigned int dims;                   //número de dimensiones
-static gsl_matrix *centros;                 //lista de coordenadas de los centros de los átomos
+static unsigned int dims;                     //número de dimensiones
+static gsl_matrix *centros;                   //lista de coordenadas de los centros de los átomos
 
-static double radio_estrella;               //radio de la estrella
-static double radio_cuerpo;                 //radio de los átomos
-static double radio_cuerpo2;                //radio_cuerpo al cuadrado
+static double radio_estrella;                 //radio de la estrella
+static double radio_cuerpo;                   //radio de los átomos
+static double radio_cuerpo2;                  //radio_cuerpo al cuadrado
 
-static gsl_vector *pos;                     //posición actual del rayo
-static gsl_vector *dir;                     //dirección actual del rayo (vector unitario)
+static gsl_vector *pos;                       //posición actual del rayo
+static gsl_vector *dir;                       //dirección actual del rayo (vector unitario)
 
-static double dist;                         //distancia hasta la primera intersección
-static gsl_vector_view centro_intersec;     //centro del cuerpo con el que interseca
-static gsl_vector *aux_vector;              //vector auxiliar para algunas funciones
+static double dist;                           //distancia hasta la primera intersección
+static gsl_vector_view centro_intersec;       //centro del cuerpo con el que interseca
+static gsl_vector *aux_vector;                //vector auxiliar para algunas funciones
 
-struct RT_resultados data;                  //info para delvolver al usuario
-struct RT_parametros RT_default_params = {  //template para que el usuario modifique
-   .registrar_recorrido = false,
-   .recorrido_filename = NULL,
-
-   .max_rebotes = 1000,
-
-   .dims = 0,                               //no modificar esto da error
-
-   .dir_inicial = NULL,                     //se elige una dirección aleatoria
-
-   .radio_cuerpo = 0,                       //no modificar esto da error
-   .radio_estrella = 0,                     //no modificar esto da error
-   .centros = NULL                          //no modificar esto da error
-}; 
-
+struct RT_resultados data;                    //info para delvolver al usuario
 
 /* Funciones de la Simulación */
 

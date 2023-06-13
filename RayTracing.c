@@ -1,6 +1,6 @@
 #include "RayTracing.h"
 #include <gsl/gsl_blas.h>
-#include "../C/GSL/MyGSLRandom.h"
+#include "../C/MyLib/MyGSL/MyGSLRandom.h"
 #include "../C/MyLib/MyTime.h"
 #include <tgmath.h>
 #include <stdio.h>
@@ -11,7 +11,7 @@ static bool hemosidoconfigurados = false;     //indica si la simulación está c
 static bool use_random_dir;                   //indica si hay que elegir una dirección aleatoria
 static bool registrar_recorrido;              //si es true guardamos una lista de los rebotes
 
-static char *recorrido_filename;              //string con el nombre de archivo
+static const char *recorrido_filename;        //string con el nombre de archivo
 static FILE *recorrido;                       //archivo donde escribimos el recorrido
 
 static unsigned int max_rebotes;              //abortar la simulación en este número de rebotes
@@ -25,6 +25,7 @@ static double radio_cuerpo2;                  //radio_cuerpo al cuadrado
 
 static gsl_vector *pos;                       //posición actual del rayo
 static gsl_vector *dir;                       //dirección actual del rayo (vector unitario)
+static gsl_vector *dir_inicial;               //dirección inicial simulada
 
 static double dist;                           //distancia hasta la primera intersección
 static gsl_vector_view centro_intersec;       //centro del cuerpo con el que interseca
@@ -83,7 +84,8 @@ void RT_configurar (struct RT_parametros params){
       
    use_random_dir = params.dir_inicial == NULL;
    if (!use_random_dir){
-      gsl_vector_memcpy(data.dir_inicial, params.dir_inicial);
+      gsl_vector_memcpy(dir_inicial, params.dir_inicial);
+      gsl_vector_scale(dir_inicial, 1/gsl_blas_dnrm2(dir_inicial));
    }
       
    //listo
@@ -102,9 +104,9 @@ struct RT_resultados RT_simular (){
 
    //seteamos la dirección inicial
    if (use_random_dir){
-      random_direction(data.dir_inicial);
+      random_direction(dir_inicial);
    }
-   gsl_vector_memcpy(dir, data.dir_inicial);
+   gsl_vector_memcpy(dir, dir_inicial);
    
    //seteamos la posición inicial
    gsl_vector_set_zero(pos);
@@ -148,8 +150,10 @@ static void alocar_vectores (unsigned int d){
    //luego los alocamos
    pos = gsl_vector_alloc(d);
    dir = gsl_vector_alloc(d);
+   dir_inicial = gsl_vector_alloc(d);
    aux_vector = gsl_vector_alloc(d);
-   data.dir_inicial = gsl_vector_alloc(d);
+
+   data.dir_inicial = gsl_vector_subvector(dir_inicial, 0, d);
 }
 
 __attribute__((destructor))
@@ -159,7 +163,7 @@ static void free_vectores (){
    gsl_vector_free(pos);
    gsl_vector_free(dir);
    gsl_vector_free(aux_vector);
-   gsl_vector_free(data.dir_inicial);
+   gsl_vector_free(dir_inicial);
 }
 
 static void escribir_pos (){

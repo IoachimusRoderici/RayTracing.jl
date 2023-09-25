@@ -12,7 +12,7 @@ int main(){
       .registrar_recorrido = true,
       .recorrido_filename = "rec.recorrido",
       
-      .max_rebotes = 10,
+      .max_rebotes = 1000,
       
       .dims = 2,
       
@@ -32,10 +32,11 @@ int main(){
    centros = mygsl_read_matrix_d(distr_file, NULL);
    params.centros = centros;
 
-   show_plot(distr_file, params.radio_cuerpo, "");
+   //show_plot(distr_file, params.radio_cuerpo, "");
 
    //simulamos
    RT_configurar(params);
+
    __attribute__((unused)) struct RT_resultados data = RT_simular();
 
    show_plot(distr_file, params.radio_cuerpo, params.recorrido_filename);

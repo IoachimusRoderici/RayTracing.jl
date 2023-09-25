@@ -1,6 +1,7 @@
 #include "RayTracing.h"
 #include <gsl/gsl_blas.h>
 #include "../C/MyLib/MyGSL/MyGSLRandom.h"
+#include "../C/MyLib/MyGSL/MyGSLio.h"
 #include "../C/MyLib/MyTime.h"
 #include <tgmath.h>
 #include <stdio.h>
@@ -37,8 +38,6 @@ struct RT_resultados data;                    //info para delvolver al usuario
 
 static void alocar_vectores (unsigned int d); //aloca los vectores, con tamaño d
 static void free_vectores ();                 //libera los vectores
-
-static void escribir_pos();                   //escribe la posición en recorrido
 
 static void correr_simulacion ();             //corre la simulación y deja los resultados en
                                               //data, excepto exito, dir_inicial, y t_elapsed.
@@ -118,6 +117,7 @@ struct RT_resultados RT_simular (){
    //abrimos el archivo para el recorrido
    if (registrar_recorrido){
       recorrido = fopen(recorrido_filename, "w");
+      mygsl_write_txt(pos, recorrido, "%lf");
    }
    
    //corremos la simulación
@@ -164,17 +164,6 @@ static void free_vectores (){
    gsl_vector_free(dir);
    gsl_vector_free(aux_vector);
    gsl_vector_free(dir_inicial);
-}
-
-static void escribir_pos (){
-   /* Escribe pos en el archivo recorrido, en formato csv.
-      No la llames si no se está registrando el recorrido.
-   */
-   
-   for (int i = 0; i<dims-1; i++){
-      fprintf(recorrido, "%lf, ", gsl_vector_get(pos, i));
-   }
-   fprintf(recorrido, "%lf\n", gsl_vector_get(pos, dims-1));
 }
 
 static void correr_simulacion (){
@@ -225,7 +214,7 @@ static void buscar_primera_interseccion (){
    
    gsl_blas_ddot(pos, dir, &pos_dot_dir); //esto ahorra cuentas para calcular aux_vector·dir
    
-   for(int i = centros->size1; i>=0; i--){
+   for(int i = centros->size1-1; i>=0; i--){
       centro_intersec = gsl_matrix_row(centros, i);
       
       gsl_blas_ddot(&centro_intersec.vector, dir, &aux_dot_dir);
@@ -296,7 +285,7 @@ static void rebotar_centro_intersec (){
    //registramos el rebote
    data.rebotes++;
    if (registrar_recorrido){
-      escribir_pos();
+      mygsl_write_txt(pos, recorrido, "%lf");
    }
 }
 
@@ -317,6 +306,6 @@ static void avanzar_hasta_el_borde(){
    //avanzamos
    avanzar_dist();
    if (registrar_recorrido){
-      escribir_pos();
+      mygsl_write_txt(pos, recorrido, "%lf");
    }
 }

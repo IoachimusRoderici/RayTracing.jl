@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "RayTracing.h"
 #include "distribuciones.h"
-#include "../C/MyLib/MyGSL/MyGSLio.h"
+#include "MyGSL/MyGSLio.h"
 
 //muestra un plot de las cosas. recorrido_filename puede ser "".
 void show_plot(const char *centros_file, double radio_cuerpo, const char *recorrido_filename);

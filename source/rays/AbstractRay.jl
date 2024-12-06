@@ -1,11 +1,13 @@
 export AbstractRay
 
 """
-Represents a ray in ND dimensions.
+Represents a ray in `ND` dimensions.
 
 A ray has a position and a direction, and may carry additional information.
+
+`T` is the type used for numeric calculation.
 """
-abstract type AbstractRay{ND} end
+abstract type AbstractRay{ND, T <: AbstractFloat} end
 
 """
     position(ray)

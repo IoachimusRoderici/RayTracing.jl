@@ -1,20 +1,20 @@
 export Ray
 
 """
-A basic implementation of a ray in ND dimensions.
+A basic implementation of a ray in `ND` dimensions with arithmetic type `T`.
 
-Only has a current position and direction, with the presition given by the type T.
+Only has a current position and a direction.
 """
-struct BasicRay{ND, T <: AbstractFloat} <: AbstractRay{ND}
+struct BasicRay{ND, T} <: AbstractRay{ND, T}
     pos::MVector{ND, T}
     dir::MVector{ND, T}
 
     BasicRay(pos, dir) = new{length(pos), eltype(pos)}(copy(pos), normalize(dir))
 end
 
-position(ray::BasicRay) = ray.pos
-direction(ray::BasicRay) = ray.dir
+position(ray::BasicRay) = Point(ray.pos)
+direction(ray::BasicRay) = SVector(ray.dir)
 
 function advance!(ray::BasicRay, distance)
-    ray.pos .+= distance * ray.dir
+    ray.pos .+= distance * direction(ray)
 end

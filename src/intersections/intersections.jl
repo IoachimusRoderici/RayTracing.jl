@@ -1,3 +1,5 @@
+export intersection_distance, intersection
+
 """
     intersection_distance(surface, ray)
 

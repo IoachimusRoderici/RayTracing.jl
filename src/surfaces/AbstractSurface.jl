@@ -1,4 +1,4 @@
-export AbstractSurface
+export AbstractSurface, normal
 
 """
 Represents an `ND`-dimensional surface that rays can bounce on.

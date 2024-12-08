@@ -1,4 +1,5 @@
-export AbstractRay
+export AbstractRay, direction, advance!
+#export position # position is not exported to avoid nameclash with Base, an overload is added instead.
 
 """
 Represents a ray in `ND` dimensions.
@@ -15,6 +16,7 @@ abstract type AbstractRay{ND, T <: AbstractFloat} end
 Return the current position of the ray.
 """
 function position end
+Base.position(ray::AbstractRay) = position(ray)
 
 """
     direction(ray)

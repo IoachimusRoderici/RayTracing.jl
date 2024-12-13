@@ -11,8 +11,8 @@ struct BasicRay{ND, T} <: AbstractRay{ND, T}
 
     function BasicRay{ND, T}(pos, dir) where {ND, T}
         normalized_dir = normalize(dir)
-        norm(normalized_dir) ≉ 1 && throw(ArgumentError("Could not normalize dir: got $normalized_dir."))
-        new{ND, T}(copy(pos), normalize(dir))
+        @assert norm(normalized_dir) ≉ 1 "Could not normalize dir: got $normalized_dir."
+        new{ND, T}(copy(pos), normalized_dir)
     end
 end
 

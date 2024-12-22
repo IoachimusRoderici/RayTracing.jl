@@ -1,5 +1,5 @@
 #TODO: diferenciar si el rayo está adentro o afuera de la esfera.
-function intersection_distance(sphere::HyperSphere{ND, T}, ray::AbstractRay{ND, T})::T where {ND, T}
+function intersection_distance(ray::AbstractRay{ND, T}, sphere::HyperSphere{ND, T})::T where {ND, T}
     # Ver https://es.wikipedia.org/wiki/Intersecci%C3%B3n_recta-esfera
     pos_a_centro = origin(sphere) - position(ray)
 

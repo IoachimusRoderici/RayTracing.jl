@@ -10,8 +10,8 @@ struct BallPit{ND, T} <: AbstractScene
     centers :: Vector{Point{ND, T}}
 end
 
-function intersection_distance(ballpit::BallPit, ray)
-    distance_to_proyection, i = findmin(c -> distance_to_proyection_if_intersects(c, ballpit.r, ray), ballpit.centers)
+function intersection_distance(ray, ballpit::BallPit)
+    distance_to_proyection, i = findmin(c -> distance_to_proyection_if_intersects(ray, c, ballpit.r), ballpit.centers)
     if distance_to_proyection < Inf
         discriminant = distance_to_proyection^2 - sum(abs2, ballpit.centers[i] - position(ray)) + ballpit.r^2
         distance = distance_to_proyection - √discriminant
@@ -21,7 +21,7 @@ function intersection_distance(ballpit::BallPit, ray)
     end
 end
 
-function distance_to_proyection_if_intersects(center, radius, ray)
+function distance_to_proyection_if_intersects(ray, center, radius)
     pos_to_center = center - position(ray)
     distance_to_proyection = pos_to_center ⋅ direction(ray)
     if distance_to_proyection > 0

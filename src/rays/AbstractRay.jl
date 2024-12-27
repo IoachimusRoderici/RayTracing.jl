@@ -12,6 +12,7 @@ abstract type AbstractRay{ND, T <: AbstractFloat} end
 
 Base.eltype(::Type{<:AbstractRay{ND, T}}) where {ND, T} = T
 Base.ndims(::Type{<:AbstractRay{ND, T}}) where {ND, T} = ND
+Base.ndims(ray::AbstractRay) = Base.ndims(typeof(ray))
 
 """
 position(ray)

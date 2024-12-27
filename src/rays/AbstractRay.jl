@@ -32,6 +32,13 @@ function direction end
 """
 advance!(ray, distance)
 
-Advances the ray by the given distance int its current direction.
+Advances the ray by the given distance in its current direction.
 """
 function advance! end
+
+"""
+    reflect!(ray, normal)
+
+Invert the direction of the ray with respect to the normal vector.
+"""
+function reflect! end

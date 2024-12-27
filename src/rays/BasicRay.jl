@@ -24,3 +24,8 @@ direction(ray::BasicRay) = ray.dir
 function advance!(ray::BasicRay, distance)
     ray.pos .+= distance * direction(ray)
 end
+
+function reflect!(ray::BasicRay, normal)
+    ray.dir .-= 2 * (ray.dir ⋅ normal) * normal
+    normalize!(ray.dir)
+end

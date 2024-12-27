@@ -1,3 +1,5 @@
+export trace!
+
 """
     abstract type AbstractScene end
 
@@ -12,4 +14,11 @@ Return the distance from `position(ray)` to the first point of intersection
 between between the ray and a surface on the scene, or infinity if there is
 no intersection.
 """
-function intersection_distance(ray, scene) end
+function intersection_distance end
+
+"""
+    trace!(ray, scene)
+
+Trace the path of a ray on a scene.
+"""
+function trace! end

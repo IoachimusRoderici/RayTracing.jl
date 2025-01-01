@@ -10,6 +10,13 @@ struct BallPit{ND, T} <: AbstractScene
     centers :: Vector{Point{ND, T}}
 end
 
+"""
+    trace!(ray, scene::BallPit; max_steps=1000)
+
+Trace `ray` on the given `BallPit` by `advance!`ing to each next
+intersection and `reflect!`ing on the corresponding sphere, until
+there are no more intersections or `max_steps` are reached.
+"""
 function trace!(ray, scene::BallPit; max_steps=1000)
     steps = 0
     distance, index = next_intersection(ray, scene)

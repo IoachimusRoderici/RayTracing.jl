@@ -11,7 +11,7 @@ Base. ==(x::T, y::T) where T <: AbstractRay = all(getfield(x, field) == getfield
         @testset "StepRecorder" begin include("rays/StepRecorder.jl") end
     end
 
-    @testset "intersections" begin
-        @testset "Sphere"       begin include("intersections/sphere-intersection.jl") end
+    @testset "scenes" begin
+        @testset "BallPit"      begin include("scenes/BallPit.jl") end
     end
 end

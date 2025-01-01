@@ -1,24 +1,18 @@
 export trace!
 
 """
-    abstract type AbstractScene end
+    abstract type AbstractScene
 
 A scene is a set of surfaces that rays bounce on.
 """
 abstract type AbstractScene end
 
 """
-    intersection_distance(ray, scene)
-
-Return the distance from `position(ray)` to the first point of intersection
-between between the ray and a surface on the scene, or infinity if there is
-no intersection.
-"""
-function intersection_distance end
-
-"""
     trace!(ray, scene)
 
-Trace the path of a ray on a scene.
+Trace a ray on a scene.
+
+The ray is evolved by `advance!`ing to each next intersection
+with an algorithm defined by each scene type.
 """
 function trace! end

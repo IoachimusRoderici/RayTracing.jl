@@ -21,5 +21,4 @@ reflect!(ray::StepRecorder, normal) = reflect!(ray.ray, normal)
 function advance!(ray::StepRecorder, distance)
     advance!(ray.ray, distance)
     push!(ray.steps, position(ray))
-    println("advanced $distance")
 end

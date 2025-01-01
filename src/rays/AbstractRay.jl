@@ -1,4 +1,4 @@
-export AbstractRay, direction, advance!
+export AbstractRay, direction, advance!, reflect!
 #export position # position is not exported to avoid nameclash with Base, an overload is added instead.
 
 """

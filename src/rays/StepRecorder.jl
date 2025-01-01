@@ -1,8 +1,11 @@
 export StepRecorder
 
 """
+    StepRecorder{ND, T, R <: AbstractRay{ND, T}} <: AbstractRay{ND, T}
+
 Wrapper around a ray type, `R`, that records the trajectory of the ray.
 
+The trajectory is stored in a `Vector{Point{ND, T}}` in the field `steps`.
 A new point is added to the trajectory after every call to `advance!`.
 """
 struct StepRecorder{ND, T, R <: AbstractRay{ND, T}} <: AbstractRay{ND, T}
@@ -16,7 +19,6 @@ StepRecorder(ray) = StepRecorder{ndims(ray), eltype(ray), typeof(ray)}(ray)
 
 position(ray::StepRecorder) = position(ray.ray)
 direction(ray::StepRecorder) = direction(ray.ray)
-reflect!(ray::StepRecorder, normal) = reflect!(ray.ray, normal)
 
 function advance!(ray::StepRecorder, distance)
     advance!(ray.ray, distance)

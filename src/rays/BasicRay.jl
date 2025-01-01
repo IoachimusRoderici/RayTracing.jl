@@ -1,6 +1,8 @@
 export BasicRay
 
 """
+    struct BasicRay{ND, T} <: AbstractRay{ND, T}
+
 A basic implementation of a ray in `ND` dimensions with arithmetic type `T`.
 
 Only has a current position and a direction.
@@ -20,12 +22,3 @@ BasicRay(pos, dir) = BasicRay{length(pos), promote_type(eltype(pos), eltype(dir)
 
 position(ray::BasicRay) = ray.pos
 direction(ray::BasicRay) = ray.dir
-
-function advance!(ray::BasicRay, distance)
-    ray.pos .+= distance * direction(ray)
-end
-
-function reflect!(ray::BasicRay, normal)
-    ray.dir .-= 2 * (ray.dir ⋅ normal) * normal
-    normalize!(ray.dir)
-end

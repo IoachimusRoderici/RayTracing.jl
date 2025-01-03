@@ -1,6 +1,6 @@
 using Test, StaticArrays, GeometryBasics, RayTracing
 import RayTracing: direction
-using LinearAlgebra: normalize
+using LinearAlgebra: normalize, norm
 
 # Equality comparison for rays of the same type:
 Base. ==(x::T, y::T) where T <: AbstractRay = all(getfield(x, field) == getfield(y, field) for field in fieldnames(T))

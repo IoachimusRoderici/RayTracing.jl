@@ -1,9 +1,10 @@
 export trace!
+public AbstractScene
 
 """
     abstract type AbstractScene
 
-A scene is a set of surfaces that rays bounce on.
+A set of surfaces that rays can bounce on.
 """
 abstract type AbstractScene end
 

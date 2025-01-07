@@ -4,6 +4,10 @@ export BallPit
     struct BallPit{ND, T} <: AbstractScene
 
 A set of same-size spheres in `ND` dimensions with arithmetic type `T`.
+
+The arguments for the constructor are:
+    - `r::T`, the radius of the spheres.
+    - `centers::Vector{Point{ND, T}}`, the centers of the spheres.
 """
 struct BallPit{ND, T} <: AbstractScene
     r :: T
@@ -16,6 +20,8 @@ end
 Trace `ray` on the given `BallPit` by `advance!`ing to each next
 intersection and `reflect!`ing on the corresponding sphere, until
 there are no more intersections or `max_steps` are reached.
+
+It is assumed that the initial position of `ray` is not inside any sphere.
 """
 function trace!(ray, scene::BallPit; max_steps=1000)
     steps = 0

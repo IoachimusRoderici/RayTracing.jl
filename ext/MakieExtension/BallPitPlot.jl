@@ -1,3 +1,10 @@
+"""
+    ballpitplot(scene::BallPit)
+
+Plot a scatter of spheres as defined by the `scene`.
+
+Keyword arguments are passed on to [scatter](https://docs.makie.org/stable/reference/plots/scatter).
+"""
 @recipe(BallPitPlot, balls) do _
     Attributes()
 end

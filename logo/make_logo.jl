@@ -1,45 +1,50 @@
-using RayTracing, GeometryBasics, CairoMakie, ColorTypes
+using CairoMakie, GeometryBasics, ColorTypes, LinearAlgebra, RayTracing
+rotate(point, θ) = [cos(θ) -sin(θ); sin(θ) cos(θ)] * point
 
-function make_logo()
-    # "Julia dots", defined in https://github.com/JuliaLang/julia-logo-graphics:
-    rotate(point, θ) = [cos(θ) -sin(θ); sin(θ) cos(θ)] * point
+radius = 0.7
+top_center = Point2d(0, 1)
+centers = Point2d[top_center, rotate(top_center, 2/3 * pi), rotate(top_center, -2/3 * pi)]
+julia_dots = BallPit(radius, centers)
+julia_dots_colors = [RGB(.22, .596, .149), RGB(.584, .345, .698), RGB(.796, .235, .2)]
 
-    radius = 3/4
-    top_center = Point2d(0, 1)
-    centers = Point2d[top_center, rotate(top_center, 2/3 * pi), rotate(top_center, -2/3 * pi)]
-    offset = Vec2d(0, -1/4)
-    centers = [center + offset for center in centers]
-    julia_dots = BallPit(radius, centers)
-    
-    # A ray:
-    origin = Point2d(-1.5,0.45)
-    dir = Vec2d(1,-0.2)
-    ray = StepRecorder(BasicRay(origin, dir))
+angles = 0:0.06:2pi
+dirs = [Vec2d(cos(t), sin(t)) for t in angles];
+rays = [StepRecorder(BasicRay(Point2d(0,0), dir)) for dir in dirs];
+for ray in rays
     trace!(ray, julia_dots)
-    advance!(ray, 0.4)
-
-    # Create the plot:
-    fig = Figure(
-        size = (600, 600),
-        figure_padding = 0,
-        backgroundcolor = :transparent
-    )
-    ax = Axis(fig[1,1],
-        aspect = 1,
-        limits = (-7/4, 7/4, -7/4, 7/4),
-        backgroundcolor = :transparent
-    )
-    hidedecorations!(ax)
-    hidespines!(ax)
-    
-    julia_dots_colors = [RGB(.22, .596, .149), RGB(.584, .345, .698), RGB(.796, .235, .2)]
-    julia_blue = RGB(.255, .388, .847)
-    lines!(ray, color=julia_blue, linewidth=10, joinstyle=:bevel)
-    plot!(ax, julia_dots, color=julia_dots_colors)
-
-    return fig
+    pop!(ray.steps)
+    popfirst!(ray.steps)
 end
+points = vcat((ray.steps for ray in rays)...);
 
-logo = make_logo()
-save(joinpath(@__DIR__, "logo.png"), logo)
-save(joinpath(@__DIR__, "logo.svg"), logo)
+function _color(point)
+    for i in eachindex(julia_dots.centers)
+        d = norm(point-julia_dots.centers[i])
+        if d ≈ radius
+            return julia_dots_colors[i]
+        end
+    end
+end
+colors = _color.(points);
+
+
+#Base.abs(p::Point) = abs.(p)
+fig = Figure(
+    figure_padding = 0,
+    backgroundcolor = :transparent
+)
+ax = Axis(fig[1,1],
+    aspect = DataAspect(),
+    limits = (-7/4, 7/4, -7/4, 7/4),
+    backgroundcolor = :transparent
+)
+hidedecorations!(ax)
+hidespines!(ax)
+autolimits!(ax)
+#limit = maximum(maximum.(abs.(points))) + 0.1
+#limits!(ax, -limit, limit, -limit, limit)
+
+scatter!(ax, points, markersize=0.06, markerspace=:data, color=colors)
+
+save(joinpath(@__DIR__, "logo.png"), fig)
+save(joinpath(@__DIR__, "logo.svg"), fig)

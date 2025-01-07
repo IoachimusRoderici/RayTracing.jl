@@ -1,4 +1,5 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 DocumenterTools = "35a29f4d-8980-5a13-9543-d66fff28ecb8"
+Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
 RayTracing = "8c93b9f4-ff46-4ca5-8b4c-7f50415580d2"

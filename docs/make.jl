@@ -1,12 +1,23 @@
 using Documenter
-using RayTracing
+using RayTracing, Makie
+
+MakieExtension = Base.get_extension(RayTracing, :MakieExtension)
+
+ray_pages = ["rays/AbstractRay.jl", "rays/BasicRay.jl", "rays/StepRecorder.jl"]
+scene_pages = ["scenes/AbstractScene.jl", "scenes/BallPit.jl"]
 
 makedocs(
     sitename = "RayTracing.jl",
-    #format = Documenter.HTML(),
-    modules = [RayTracing],
+    modules = [RayTracing, MakieExtension],
     checkdocs = :exports,
-    warnonly = :missing_docs
+    warnonly = true,
+    pages = [
+        "Home" => "index.md",
+        "rays.md",
+        "scenes.md",
+        "api_reference.md",
+        "plots.md"
+    ]
 )
 
 # Documenter can also automatically deploy documentation to gh-pages.

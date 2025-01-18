@@ -9,6 +9,9 @@ include("rays/AbstractRay.jl")
 include("rays/BasicRay.jl")
 include("rays/StepRecorder.jl")
 
+include("reflection_modes/ReflectionMode.jl")
+include("reflection_modes/SpecularReflection.jl")
+
 include("scenes/AbstractScene.jl")
 include("scenes/BallPit.jl")
 

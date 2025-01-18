@@ -32,7 +32,7 @@ function trace!(ray, scene::BallPit; max_steps=1000)
         steps += 1
 
         normal = normalize(position(ray) - scene.centers[index])
-        reflect!(ray, normal)
+        reflect!(ray, SpecularReflection(), normal)
 
         distance, index = next_intersection(ray, scene)
     end

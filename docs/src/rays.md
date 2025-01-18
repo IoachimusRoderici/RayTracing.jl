@@ -21,7 +21,6 @@ The following functions are defined for all ray types and comprise the public in
 - [`position`](@ref RayTracing.position)
 - [`direction`](@ref)
 - [`advance!`](@ref)
-- [`reflect!`](@ref)
 - TODO: add direction! function
 
 Additional functions may exist for each ray type.

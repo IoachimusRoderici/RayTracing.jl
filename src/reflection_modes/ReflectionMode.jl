@@ -1,4 +1,5 @@
 public ReflectionMode
+export reflect!
 
 """
     abstract type ReflectionMode

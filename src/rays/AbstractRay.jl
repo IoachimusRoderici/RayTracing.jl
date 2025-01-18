@@ -1,4 +1,4 @@
-export AbstractRay, direction, advance!, reflect!
+export AbstractRay, direction, advance!
 public position # position is not exported to avoid nameclash with Base, an overload is added instead.
 
 """
@@ -48,21 +48,7 @@ function direction end
 
 Advances the ray by the given `distance` in its current direction.
 """
-function advance!(ray::AbstractRay, distance)
+function advance!(ray, distance)
     # This implementation requires `position` to be mutable
     position(ray) .+= distance * direction(ray)
-end
-
-"""
-    reflect!(ray, normal)
-
-Invert the direction of the ray with respect to the given `normal` vector.
-
-`normal` should be a unit vector.
-"""
-function reflect!(ray::AbstractRay, normal)
-    # This implementation requires `direction` to be mutable
-    dir = direction(ray)
-    dir .-= 2 * (dir ⋅ normal) * normal
-    normalize!(dir)
 end

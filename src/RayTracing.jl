@@ -15,4 +15,6 @@ include("reflection_modes/SpecularReflection.jl")
 include("scenes/AbstractScene.jl")
 include("scenes/BallPit.jl")
 
+include("trace!.jl")
+
 end

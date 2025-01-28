@@ -10,14 +10,17 @@ function make_logo()
     offset = Vec2d(0, -1/4)
     centers = [center + offset for center in centers]
     julia_dots = BallPit(radius, centers)
+
+    surface_data = [(SpecularReflection(), nothing) for _ in centers]
+    scene = GeometryWithData(julia_dots, surface_data)
     
     # A ray:
     origin = Point2d(-1.5,0.45)
     dir = Vec2d(1,-0.2)
     ray = StepRecorder(BasicRay(origin, dir))
-    trace!(ray, julia_dots)
+    trace!(ray, scene)
     advance!(ray, 0.4)
-
+    
     # Create the plot:
     fig = Figure(
         size = (600, 600),
@@ -31,7 +34,7 @@ function make_logo()
     )
     hidedecorations!(ax)
     hidespines!(ax)
-    
+        
     julia_dots_colors = [RGB(.22, .596, .149), RGB(.584, .345, .698), RGB(.796, .235, .2)]
     julia_blue = RGB(.255, .388, .847)
     lines!(ray, color=julia_blue, linewidth=10, joinstyle=:bevel)

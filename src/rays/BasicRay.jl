@@ -1,7 +1,7 @@
 export BasicRay
 
 """
-    struct BasicRay{ND, T} <: AbstractRay{ND, T}
+    BasicRay{ND, T} <: AbstractRay{ND, T}
 
 A basic implementation of a ray in `ND` dimensions with arithmetic type `T`.
 
@@ -23,12 +23,15 @@ end
     BasicRay(pos, dir)
 
 Construct a `BasicRay{ND, T}` with position `pos` and direction `dir`.
-With the second signature, `ND` and `T` are determined automatically from the arguments.
+
+With the second signature, `ND` and `T` are determined automatically from the
+arguments.
 
 The direction is normalized before costruction.
 
-Both arguments should be vectors of length `ND` and element type `T`.
-Both are copied so that later changes to the objects passed as arguments don't affect the constructed ray.
+Both arguments should be vectors of length `ND` and element type `T`. Both are
+copied so that later changes to the objects passed as arguments don't affect the
+constructed ray.
 """
 BasicRay(pos, dir) = BasicRay{length(pos), promote_type(eltype(pos), eltype(dir))}(pos, dir)
 

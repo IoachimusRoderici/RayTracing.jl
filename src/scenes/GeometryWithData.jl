@@ -1,5 +1,7 @@
+export GeometryWithData
+
 """
-    struct GeometryWithData{GeometryType <: SceneGeometry, MappingType} <: AbstractScene
+    GeometryWithData{GeometryType <: SceneGeometry, MappingType} <: AbstractScene
 
 A scene that wraps a [`SceneGeometry`](@ref) and adds a mapping from surface id
 to material data.
@@ -17,5 +19,5 @@ function get_surface_data(scene::GeometryWithData, surface_id, pos)
     geometric_data = get_surface_data(scene.geometry, surface_id, pos)
     reflection_mode, material_data = scene.data[surface_id]
 
-    return reflection_mode, (geometric_data, material_data)
+    return reflection_mode, geometric_data, material_data
 end

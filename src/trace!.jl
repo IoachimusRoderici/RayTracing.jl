@@ -1,4 +1,4 @@
-public trace!, step!
+export trace!, step!
 
 """
     trace!(ray, scene; kwargs...)
@@ -60,8 +60,8 @@ function step!(ray, scene)
         return :no_intersection
     else
         advance!(ray, distance)
-        reflection_mode, surface_data = get_surface_data(scene, surface_id, position(ray))
-        reflect!(ray, reflection_mode, surface_data)
+        surface_data = get_surface_data(scene, surface_id, position(ray))
+        reflect!(ray, surface_data...)
         return :ok
     end
 end

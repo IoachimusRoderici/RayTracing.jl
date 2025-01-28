@@ -1,1 +1,1 @@
-Makie.convert_arguments(::PointBased, ray::StepRecorder) = (ray.steps,)
+Makie.convert_arguments(::PointBased, ray::StepRecorder) = (data(ray),)

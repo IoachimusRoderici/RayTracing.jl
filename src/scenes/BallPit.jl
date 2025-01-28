@@ -1,7 +1,7 @@
 export BallPit
 
 """
-    struct BallPit{ND, T} <: SceneGeometry
+    BallPit{ND, T} <: SceneGeometry
 
 A set of same-size spheres in `ND` dimensions with arithmetic type `T`.
 

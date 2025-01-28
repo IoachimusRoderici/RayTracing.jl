@@ -2,13 +2,15 @@ export AbstractRay, direction, advance!
 public position # position is not exported to avoid nameclash with Base, an overload is added instead.
 
 """
-    abstract type AbstractRay{ND, T <: AbstractFloat}
+    abstract type AbstractRay{ND, T <: Real}
 
-Represents a ray in `ND` dimensions that uses the type `T` for numeric calculations.
+Represents a ray in `ND` dimensions that uses the type `T` for numeric
+calculations.
 
-All rays have a position and a direction, and each concrete type may carry additional information.
+All rays have a [`position`](@ref) and a [`direction`](@ref), and each concrete
+type may carry additional information.
 """
-abstract type AbstractRay{ND, T <: AbstractFloat} end
+abstract type AbstractRay{ND, T <: Real} end
 
 """
     Base.eltype(::Type{<:AbstractRay})
@@ -31,7 +33,7 @@ Base.ndims(ray::AbstractRay) = Base.ndims(typeof(ray))
     Base.position(ray)
     RayTracing.position(ray)
 
-Return the current position of the ray, possibly as a mutable reference.
+Return the current position of the ray, as a mutable reference.
 """
 function position end
 Base.position(ray::AbstractRay) = position(ray)
@@ -39,7 +41,7 @@ Base.position(ray::AbstractRay) = position(ray)
 """
     direction(ray)
 
-Return the current direction of the ray, possibly as a mutable reference.
+Return the current direction of the ray, as a mutable reference.
 """
 function direction end
 
@@ -49,6 +51,5 @@ function direction end
 Advances the ray by the given `distance` in its current direction.
 """
 function advance!(ray, distance)
-    # This implementation requires `position` to be mutable
     position(ray) .+= distance * direction(ray)
 end

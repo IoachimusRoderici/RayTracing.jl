@@ -38,8 +38,8 @@ id is unspecified.
 function next_intersection end
 
 """
-    get_surface_data(scene::AbstractScene, surface_id, pos) -> reflection_mode, surface_data
-    get_surface_data(scene::SceneGeometry, surface_id, pos) -> surface_data
+    get_surface_data(scene::AbstractScene, surface_id, pos) -> reflection_mode, geometric_data, material_data
+    get_surface_data(scene::SceneGeometry, surface_id, pos) -> geometric_data
 
 Return surface data for a surface of `scene` identified by `surface_id` (as
 returned by [`next_intersection`](@ref)) at point `pos`.

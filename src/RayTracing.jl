@@ -1,8 +1,8 @@
 module RayTracing
 
 using StaticArrays
-import LinearAlgebra: norm, normalize, normalize!, ⋅
-import GeometryBasics: Point
+import LinearAlgebra: norm, normalize, normalize!, ⋅, ×
+import GeometryBasics: Point, Vec, Vec3d
 
 
 include("rays/AbstractRay.jl")
@@ -18,5 +18,7 @@ include("scenes/BallPit.jl")
 include("scenes/GeometryWithData.jl")
 
 include("trace!.jl")
+
+include("ray_sources/BackwardCameraRays.jl")
 
 end

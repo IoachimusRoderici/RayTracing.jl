@@ -1,0 +1,5 @@
+[deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+ColorTypes = "3da002f7-5984-5a60-b8a6-cbb66c0b333f"
+GeometryBasics = "5c1252a2-5f33-56bf-86c9-59e7332b4326"
+RayTracing = "8c93b9f4-ff46-4ca5-8b4c-7f50415580d2"

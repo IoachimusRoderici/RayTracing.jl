@@ -12,13 +12,12 @@ ray is mutated (i.e. how a new direction is chosen, and what other data is mutat
 abstract type ReflectionMode end
 
 """
-    reflect!(ray::AbstractRay, mode::ReflectionMode, surface_data)
+    reflect!(ray::AbstractRay, mode::ReflectionMode, geometric_data, material_data)
 
-Reflect `ray` on the surface described by `mode` and `surface_data`.
+Reflect `ray` on the surface described by `mode`, `geometric_data`, and
+`material_data`.
 
-Usually this will modify the direction of `ray`, and possibly other data
-(for example, color).
-
-The type and meaning of `surface_data` is defined by each concrete type of [`ReflectionMode`](@ref).
+The type and meaning of `geometric_data` and `material_data` is defined by each
+type of [`ReflectionMode`](@ref).
 """
 function reflect! end

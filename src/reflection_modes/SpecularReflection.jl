@@ -9,7 +9,7 @@ mutating only the ray's direction.
 struct SpecularReflection <: ReflectionMode end
 
 """
-    reflect!(ray, ::SpecularReflection, normal)
+    reflect!(ray, ::SpecularReflection, normal, _)
 
 Invert the direction of `ray` with respect to the given `normal` vector.
 

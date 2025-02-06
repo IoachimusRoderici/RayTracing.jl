@@ -26,8 +26,6 @@ struct MaterialDataOperation{Op} <: ReflectionMode
     operation :: Op
 end
 
-MaterialDataOperation(op) = MaterialDataOperation{typeof(op)}(op)
-
 function reflect!(ray, mode::MaterialDataOperation, geometric_data, material_data)
     result = mode.operation(data(ray), material_data)
     data!(ray, result)

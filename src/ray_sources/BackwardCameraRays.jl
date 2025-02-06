@@ -79,6 +79,6 @@ end
 Base.size(rays::BackwardCameraRays) = rays.size
 
 function Base.getindex(rays::BackwardCameraRays{T}, I::Vararg{Int, 2}) where T
-    dir = rays.first_pixel + I[1]*rays.down_1_pixel + I[2]*rays.right_1_pixel
+    dir = rays.first_pixel + (I[1]-1)*rays.down_1_pixel + (I[2]-1)*rays.right_1_pixel
     return BasicRay{3,T}(rays.origin, dir)
 end

@@ -11,9 +11,10 @@ include("rays/RayWithData.jl")
 include("rays/StateRecorder.jl")
 
 include("reflection_modes/ReflectionMode.jl")
+include("reflection_modes/CombinedReflectionModes.jl")
 include("reflection_modes/SpecularReflection.jl")
 include("reflection_modes/SetMaterialData.jl")
-include("reflection_modes/CombinedReflectionModes.jl")
+include("reflection_modes/MaterialDataOperation.jl")
 
 include("scenes/AbstractScene.jl")
 include("scenes/BallPit.jl")

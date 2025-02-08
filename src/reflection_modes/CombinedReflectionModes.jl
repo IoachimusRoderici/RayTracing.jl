@@ -12,8 +12,8 @@ each contained mode.
 ## Example
 
 ```jldoctest
-struct Mode1 <: ReflectionMode end
-struct Mode2 <: ReflectionMode end
+struct Mode1 <: RayTracing.ReflectionMode end
+struct Mode2 <: RayTracing.ReflectionMode end
 RayTracing.reflect!(ray, mode::Mode1, geometric_data, material_data) = println(material_data)
 RayTracing.reflect!(ray, mode::Mode2, geometric_data, material_data) = println(geometric_data)
 

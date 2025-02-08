@@ -1,6 +1,9 @@
 using Documenter
 using RayTracing, Makie
 
+# Assume "using RayTracing" in all doctests:
+DocMeta.setdocmeta!(RayTracing, :DocTestSetup, :(using RayTracing); recursive=true)
+
 MakieExtension = Base.get_extension(RayTracing, :MakieExtension)
 
 ray_pages = ["rays/AbstractRay.jl", "rays/BasicRay.jl", "rays/StepRecorder.jl"]

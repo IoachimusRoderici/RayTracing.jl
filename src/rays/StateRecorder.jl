@@ -25,6 +25,8 @@ Construct a `StateRecorder` with the appropriate type parameters.
 
 `state_func` must return values of `state_type`, which are the values to be
 recorded.
+
+See also [`StepRecorder`](@ref).
 """
 StateRecorder(ray, state_type=typeof(ray), state_func=deepcopy) = StateRecorder{ndims(ray), eltype(ray), state_type, typeof(state_func), typeof(ray)}(ray, state_func)
 

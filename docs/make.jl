@@ -18,8 +18,8 @@ makedocs(
         "Home" => "index.md",
         "rays.md",
         "scenes.md",
-        "api_reference.md",
-        "plots.md"
+        "plots.md",
+        "api_reference.md"
     ]
 )
 
